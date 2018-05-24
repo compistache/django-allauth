@@ -108,7 +108,7 @@ class LoginForm(forms.Form):
         login.
         """
         credentials = {}
-        login = self.cleaned_data["login"]
+        login = self.cleaned_data["login"].lower()
         if app_settings.AUTHENTICATION_METHOD == AuthenticationMethod.EMAIL:
             credentials["email"] = login
         elif (app_settings.AUTHENTICATION_METHOD
@@ -209,7 +209,8 @@ def _base_signup_form_class():
 
 class BaseSignupForm(_base_signup_form_class()):
     username = forms.CharField(label=_("Username"),
-                               min_length=app_settings.USERNAME_MIN_LENGTH,
+                               min_length=2,
+                               max_length=30,
                                widget=forms.TextInput(
                                    attrs={'placeholder':
                                           _('Username'),
@@ -224,10 +225,6 @@ class BaseSignupForm(_base_signup_form_class()):
         self.username_required = kwargs.pop('username_required',
                                             app_settings.USERNAME_REQUIRED)
         super(BaseSignupForm, self).__init__(*args, **kwargs)
-        username_field = self.fields['username']
-        username_field.max_length = get_username_max_length()
-        username_field.validators.append(
-            validators.MaxLengthValidator(username_field.max_length))
 
         # field order may contain additional fields from our base class,
         # so take proper care when reordering...
@@ -256,12 +253,12 @@ class BaseSignupForm(_base_signup_form_class()):
             del self.fields["username"]
 
     def clean_username(self):
-        value = self.cleaned_data["username"]
+        value = self.cleaned_data["username"].lower()
         value = get_adapter().clean_username(value)
         return value
 
     def clean_email(self):
-        value = self.cleaned_data["email"]
+        value = self.cleaned_data["email"].lower()
         value = get_adapter().clean_email(value)
         if app_settings.UNIQUE_EMAIL:
             if value and email_address_exists(value):

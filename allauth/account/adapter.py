@@ -254,7 +254,7 @@ class DefaultAccountAdapter(object):
             assert username_field
             user_model = get_user_model()
             try:
-                query = {username_field + '__iexact': username}
+                query = {username_field: username}
                 user_model.objects.get(**query)
             except user_model.DoesNotExist:
                 return username

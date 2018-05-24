@@ -12,7 +12,7 @@ class EmailAddressManager(models.Manager):
     def add_email(self, request, user, email,
                   confirm=False, signup=False):
         try:
-            email_address = self.get(user=user, email__iexact=email)
+            email_address = self.get(user=user, email=email)
         except self.model.DoesNotExist:
             email_address = self.create(user=user, email=email)
             if confirm:
@@ -30,7 +30,7 @@ class EmailAddressManager(models.Manager):
         # this is a list rather than a generator because we probably want to
         # do a len() on it right away
         return [address.user for address in self.filter(verified=True,
-                                                        email__iexact=email)]
+                                                        email=email)]
 
     def fill_cache_for_user(self, user, addresses):
         """
@@ -46,7 +46,7 @@ class EmailAddressManager(models.Manager):
         addresses = getattr(user, cache_key, None)
         if addresses is None:
             ret = self.get(user=user,
-                           email__iexact=email)
+                           email=email)
             # To avoid additional lookups when e.g.
             # EmailAddress.set_as_primary() starts touching self.user
             ret.user = user
