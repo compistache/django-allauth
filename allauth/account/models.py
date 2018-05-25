@@ -17,15 +17,21 @@ from .utils import user_email
 from .managers import EmailAddressManager, EmailConfirmationManager
 from .adapter import get_adapter
 
+from oml.crypto.fields import EncryptedField
+
 
 @python_2_unicode_compatible
 class EmailAddress(models.Model):
 
     user = models.ForeignKey(allauth_app_settings.USER_MODEL,
                              verbose_name=_('user'))
-    email = models.EmailField(unique=app_settings.UNIQUE_EMAIL,
+    email = EncryptedField('e-mail address')
+    _email = models.EmailField(unique=False,
                               max_length=254,
                               verbose_name=_('e-mail address'))
+    domain = models.CharField(
+        max_length=200, blank=True, null=True, editable=False
+    )
     verified = models.BooleanField(verbose_name=_('verified'), default=False)
     primary = models.BooleanField(verbose_name=_('primary'), default=False)
 
@@ -39,6 +45,12 @@ class EmailAddress(models.Model):
 
     def __str__(self):
         return "%s (%s)" % (self.email, self.user)
+
+    def save(self, *args, **kwargs):
+        if not self.domain and self.email:
+            _, domain = self.email.split('@')
+            self.domain = domain
+        super().save(*args, **kwargs)
 
     def set_as_primary(self, conditional=False):
         old_primary = EmailAddress.objects.get_primary(self.user)

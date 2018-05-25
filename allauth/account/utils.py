@@ -205,7 +205,7 @@ def cleanup_email_addresses(request, addresses):
         # ... and non-conflicting ones...
         if (app_settings.UNIQUE_EMAIL
                 and EmailAddress.objects
-                .filter(email__iexact=email)
+                .filter(email=email)
                 .exists()):
             continue
         a = e2a.get(email.lower())
@@ -342,9 +342,9 @@ def sync_user_email_addresses(user):
     from .models import EmailAddress
     email = user_email(user)
     if email and not EmailAddress.objects.filter(user=user,
-                                                 email__iexact=email).exists():
+                                                 email=email).exists():
         if app_settings.UNIQUE_EMAIL \
-                and EmailAddress.objects.filter(email__iexact=email).exists():
+                and EmailAddress.objects.filter(email=email).exists():
             # Bail out
             return
         EmailAddress.objects.create(user=user,
@@ -362,10 +362,10 @@ def filter_users_by_email(email):
     """
     from .models import EmailAddress
     User = get_user_model()
-    mails = EmailAddress.objects.filter(email__iexact=email)
+    mails = EmailAddress.objects.filter(email=email)
     users = [e.user for e in mails.prefetch_related('user')]
     if app_settings.USER_MODEL_EMAIL_FIELD:
-        q_dict = {app_settings.USER_MODEL_EMAIL_FIELD + '__iexact': email}
+        q_dict = {app_settings.USER_MODEL_EMAIL_FIELD: email}
         users += list(User.objects.filter(**q_dict))
     return list(set(users))
 
